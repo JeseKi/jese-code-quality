@@ -12,7 +12,6 @@ import tokenize
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from statistics import mean
 from typing import Iterable, Literal
 
 
@@ -295,7 +294,17 @@ def summarize_group(
     files: list[FileScore],
 ) -> GroupScore:
     included = [file for file in files if file.included_in_score]
-    score = mean(file.score for file in included) if included else None
+    total_effective_lines = sum(file.effective_lines for file in included)
+    score: float | None
+    if not included:
+        score = None
+    elif total_effective_lines == 0:
+        score = 100
+    else:
+        score = sum(
+            file.score * file.effective_lines for file in included
+        ) / total_effective_lines
+
     return GroupScore(
         name=name,
         label=label,
@@ -305,7 +314,7 @@ def summarize_group(
         healthy_count=sum(1 for file in included if file.status == "healthy"),
         warning_count=sum(1 for file in included if file.status == "warning"),
         danger_count=sum(1 for file in included if file.status == "danger"),
-        total_effective_lines=sum(file.effective_lines for file in included),
+        total_effective_lines=total_effective_lines,
     )
 
 
@@ -699,7 +708,7 @@ def render_html(report: QualityReport) -> str:
     <header>
       <div>
         <h1>代码质量报告</h1>
-        <p class="subtitle">基于有效代码行数评分：后端 300 行以内满分，300 到 600 行线性降至 0 分；前端 600 行以内满分，600 到 1000 行线性降至 0 分。系统分数按所有参与评分文件平均。</p>
+        <p class="subtitle">基于有效代码行数评分：后端 300 行以内满分，300 到 600 行线性降至 0 分；前端 600 行以内满分，600 到 1000 行线性降至 0 分。汇总分数按参与评分文件的有效代码行数加权平均。</p>
       </div>
       <div class="meta">
         <span>生成时间</span><strong>{html.escape(generated_at)}</strong>

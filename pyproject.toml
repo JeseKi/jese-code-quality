@@ -1,6 +1,6 @@
 [project]
 name = "jeseki-code-quality"
-version = "0.1.0"
+version = "0.1.1"
 description = "Generate an offline HTML code quality report."
 readme = "README.md"
 requires-python = ">=3.13"
