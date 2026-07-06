@@ -45,6 +45,7 @@ def main(
         bool,
         typer.Option(
             "--include-tests",
+            "-t",
             help="让测试文件参与评分；默认仅展示测试文件但不参与平均分。",
         ),
     ] = False,
